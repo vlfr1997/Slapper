@@ -374,6 +374,25 @@ class Main extends PluginBase implements Listener {
                                                         $sender->sendMessage($this->prefix . "That entity can not have a menu name.");
                                                     }
                                                     return true;
+                                                case "addSlapperPerm":
+													if (isset($args[2])) {
+                                                        array_shift($args);
+                                                        array_shift($args);
+                                                        $input = trim(implode(" ", $args));
+
+                                                        $perms = $entity->namedtag->getCompoundTag("Perms") ?? new CompoundTag("Perms");
+
+                                                        if ($perms->hasTag($input)) {
+                                                            $sender->sendMessage($this->prefix . "That perm has already been added.");
+                                                            return true;
+                                                        }
+                                                        $perms->setString($input, $input);
+                                                        $entity->namedtag->setTag($perms); //in case a new CompoundTag was created
+                                                        $sender->sendMessage($this->prefix . "Perm added.");
+                                                    } else {
+                                                        $sender->sendMessage($this->prefix . "Please enter a perm.");
+                                                    }
+                                                    return true;
                                                 case "addc":
                                                 case "addcmd":
                                                 case "addcommand":
@@ -411,6 +430,37 @@ class Main extends PluginBase implements Listener {
                                                         $sender->sendMessage($this->prefix . "Command removed.");
                                                     } else {
                                                         $sender->sendMessage($this->prefix . "Please enter a command.");
+                                                    }
+                                                    return true;
+                                                case "listcommands":
+                                                case "listcmds":
+                                                case "listcs":
+                                                    $commands = $entity->namedtag->getCompoundTag("Commands");
+                                                    if ($commands !== null and $commands->getCount() > 0) {
+                                                        $id = 0;
+
+                                                        /** @var StringTag $stringTag */
+                                                        foreach ($commands as $stringTag) {
+                                                            $id++;
+                                                            $sender->sendMessage(TextFormat::GREEN . "[" . TextFormat::YELLOW . "S" . TextFormat::GREEN . "] " . TextFormat::YELLOW . $id . ". " . TextFormat::GREEN . $stringTag->getValue() . "\n");
+                                                        }
+                                                    } else {
+                                                        $sender->sendMessage($this->prefix . "That entity does not have any commands.");
+                                                    }
+                                                    return true;
+												case "removeSlapperPerm":
+                                                    if (isset($args[2])) {
+                                                        array_shift($args);
+                                                        array_shift($args);
+                                                        $input = trim(implode(" ", $args));
+
+                                                        $perms = $entity->namedtag->getCompoundTag("Perms") ?? new CompoundTag("Perms");
+
+                                                        $perms->removeTag($input);
+                                                        $entity->namedtag->setTag($perms); //in case a new CompoundTag was created
+                                                        $sender->sendMessage($this->prefix . "Perm removed.");
+                                                    } else {
+                                                        $sender->sendMessage($this->prefix . "Please enter a perm.");
                                                     }
                                                     return true;
                                                 case "listcommands":
@@ -577,6 +627,7 @@ class Main extends PluginBase implements Listener {
         $nbt->setString("MenuName", "");
         $nbt->setString("CustomName", $name);
         $nbt->setString("SlapperVersion", $this->getDescription()->getVersion());
+		$nbt->setTag(new CompoundTag("Perms", []));
         if ($type === "Human") {
             $player->saveNBT();
 
